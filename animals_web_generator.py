@@ -1,62 +1,67 @@
 import json
 
-# Load JSON data from a file
+
 def load_data(file_path):
-    """Loads JSON data from a file."""
+    """Loads animal data from a JSON file."""
     with open(file_path, "r") as file:
         return json.load(file)
 
-# Generate HTML content for each animal
-def serialize_animal(animal):
-    """Converts animal data into an inline-styled HTML list item."""
-    return f"""
-    <li style="background: white; padding: 20px; border-radius: 10px; 
-               box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2); width: 80%; 
-               max-width: 600px; text-align: left; margin-bottom: 20px;">
-        <div style="font-size: 22px; font-weight: 400; margin-bottom: 10px; 
-                    text-transform: uppercase; color: #444;">
-            {animal['name'].upper()}
-        </div>
-        <div>
-            <ul style="padding: 0; margin: 0; list-style-type: none;">
-                <li><strong>Diet:</strong> {animal['characteristics'].get('diet', 'Unknown')}</li>
-                <li><strong>Skin Type:</strong> {animal['characteristics'].get('skin_type', 'Unknown')}</li>
-                <li><strong>Type:</strong> {animal['characteristics'].get('type', 'Unknown')}</li>
-                <li><strong>Lifespan:</strong> {animal['characteristics'].get('lifespan', 'Unknown')}</li>
-                <li><strong>Color:</strong> {animal['characteristics'].get('color', 'Unknown')}</li>
-                <li><strong>Location:</strong> {', '.join(animal.get('locations', ['Unknown']))}</li>
-                <li><strong>Scientific Name:</strong> {animal['taxonomy'].get('scientific_name', 'Unknown')}</li>
-            </ul>
-        </div>
-    </li>
-    """
 
-# Generate the final HTML file
-def generate_html(data):
-    """Generates the animals.html file from a template."""
-    template_content = f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>My Animal Repository</title>
-    </head>
-    <body style="background-color: #ffe6e6; text-align: center; font-family: Arial, sans-serif; padding: 20px;">
-        <h1 style="font-size: 36px; font-weight: bold; color: black;">My Animal Repository</h1>
-        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 20px;">
-            {"".join(serialize_animal(animal) for animal in data)}
-        </ul>
-    </body>
-    </html>
-    """
+def generate_animal_html(animal):
+    """Generates structured HTML for each animal."""
+    html = '<li class="cards__item">\n'
+    html += f'  <div class="card__title">{animal["name"].upper()}</div>\n'
+    html += '  <div class="card__text">\n'
+    html += '    <ul>\n'
 
-    # Write the final HTML output
+    # Adding animal characteristics
+    if "diet" in animal["characteristics"]:
+        html += f'      <li><strong>Diet:</strong> {animal["characteristics"]["diet"]}</li>\n'
+    if "skin_type" in animal["characteristics"]:
+        html += f'      <li><strong>Skin Type:</strong> {animal["characteristics"]["skin_type"]}</li>\n'
+    if "type" in animal["characteristics"]:
+        html += f'      <li><strong>Type:</strong> {animal["characteristics"]["type"]}</li>\n'
+    if "lifespan" in animal["characteristics"]:
+        html += f'      <li><strong>Lifespan:</strong> {animal["characteristics"]["lifespan"]}</li>\n'
+    if "color" in animal["characteristics"]:
+        html += f'      <li><strong>Color:</strong> {animal["characteristics"]["color"]}</li>\n'
+
+    # Adding location(s)
+    if "locations" in animal and animal["locations"]:
+        html += f'      <li><strong>Location:</strong> {", ".join(animal["locations"])}</li>\n'
+
+    # Adding scientific name
+    if "scientific_name" in animal["taxonomy"]:
+        html += f'      <li><strong>Scientific Name:</strong> {animal["taxonomy"]["scientific_name"]}</li>\n'
+
+    html += '    </ul>\n'
+    html += '  </div>\n'
+    html += '</li>\n'
+
+    return html
+
+
+def main():
+    """Main function to generate the animals.html file."""
+    # Load animal data from JSON
+    animals = load_data("animals_data.json")
+
+    # Read the HTML template
+    with open("animals_template.html", "r") as template_file:
+        template_content = template_file.read()
+
+    # Generate HTML for all animals
+    animals_html = "\n".join(generate_animal_html(animal) for animal in animals)
+
+    # Replace placeholder in template
+    final_html = template_content.replace("__REPLACE_ANIMALS_INFO__", animals_html)
+
+    # Write final output to animals.html
     with open("animals.html", "w") as output_file:
-        output_file.write(template_content)
+        output_file.write(final_html)
 
-# Main execution
+    print("✅ animals.html has been successfully generated!")
+
+
 if __name__ == "__main__":
-    animals_data = load_data("animals_data.json")  # Load the JSON data
-    generate_html(animals_data)  # Generate the final HTML
-    print("✅ animals.html has been generated successfully!")
+    main()
